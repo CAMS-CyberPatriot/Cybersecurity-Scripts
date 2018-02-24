@@ -11,7 +11,7 @@
 #	*Sets a password for each user
 #	*Change password policies for each user
 #	*Directs you to /etc/group to check admin groups
-
+#	*Edits PAM configuration
 
 passwd -l root
 touch ~/Desktop/usersHere.txt
@@ -76,5 +76,27 @@ nano /etc/group
 rm ~/Desktop/addedUsers.txt
 rm ~/Desktop/deletedUsers.txt
 rm ~/Desktop/usersHere.txt
+
+clear
+
+cat /etc/pam.d/common-password | grep pam_unix.so
+echo " "
+echo "Would you like to change this policy?[y/n]"
+read ans
+
+if [ "$ans" -eq "yes" ]
+then 
+	sed -i "s/pam_unix.so obscure sha512/pam_unix.so obscure md5 remember=5 minlen=8/g" /etc/pam.d/common-password
+	cat /etc/pam.d/common-password | grep pam_unix.so
+	echo " "
+	echo "Changes made."
+else
+	echo "Skipped."
+fi
+
+sed -i "s/PASS_MAX_DAYS 99999/PASS_MAX_DAYS 30/g" /etc/login.defs
+sed -i "s/PASS_MIN_DAYS 0/PASS_MIN_DAYS 10/g" /etc/login.defs
+sed -i "s/PASS_WARN_AGE 7/PASS_WARN_AGE 7/g" /etc/login.defs
+sed -i "s/pam_cracklib.so /pam_unix.so obscure md5 remember=5 minlen=8/g" /etc/pam.d/common-password
 
 echo 'You are now done.'
